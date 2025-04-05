@@ -1,0 +1,45 @@
+# Welcome to your prefect.yaml file! You can use this file for storing and managing
+# configuration for deploying your flows. We recommend committing this file to source
+# control along with your flow code.
+
+# Generic metadata about this project
+name: flows
+prefect-version: 3.1.15
+
+push:
+
+pull:
+- prefect.deployments.steps.git_clone:
+    id: clone-step
+    repository: https://github.com/ben-epstein/extract-anything
+    branch: main
+    credentials: '{{ prefect.blocks.github-credentials.modal-github-pull }}'
+- prefect.deployments.steps.run_shell_script:
+    directory: '{{ clone-step.directory }}'
+    script: pip install uv==0.6.12
+- prefect.deployments.steps.run_shell_script:
+    directory: '{{ clone-step.directory }}'
+    script: uv sync --no-editable --no-dev
+
+deployments:
+- name: process-ndas
+  version:
+  tags: []
+  description: Automatically process NDA pdfs from raw and uploads them to the database
+  entrypoint: flows.proces_nda:main
+  enforce_parameter_schema: true
+  parameters: {}
+  work_pool:
+    name: pref-modal-pool
+    work_queue_name: default
+    job_variables:
+      secrets:
+      - supabase # secrets from modal for access credentials
+      env:
+        UV_PROJECT_ENVIRONMENT: /usr/local # Required with uv to install to system python in modal
+  concurrency_limit:
+  schedules:
+  - cron: '*/30 20-7 * * *'
+    timezone: America/New_York
+    day_or: true
+    active: true

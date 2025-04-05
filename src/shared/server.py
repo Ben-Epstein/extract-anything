@@ -1,8 +1,3 @@
-# If you are using baml with vertexai (not google ai studio), you need to export creds from gcp and add them here
-# or hardcode them in clients.baml
-# import os
-# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/path/to/vertex-creds.json"
-
 import asyncio
 import json
 import base64
@@ -12,11 +7,11 @@ from baml_py import BamlStream, Image
 import httpx
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 import uvicorn
-from baml_client import b
-from baml_client.type_builder import TypeBuilder
+from shared.baml_client import b
+from shared.baml_client.type_builder import TypeBuilder
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from baml_client.types import Schema
+from shared.baml_client.types import Schema
 from baml_py.errors import BamlError
 from pdf2image import convert_from_bytes
 from PIL import Image as PILImage
@@ -27,11 +22,16 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost", "http://localhost:3000", "http://localhost:3001"],
+    allow_origins=[
+        "http://localhost",
+        "http://localhost:3000",
+        "http://localhost:3001",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.post("/execute_baml/call")
 async def execute_baml_call(
@@ -39,9 +39,16 @@ async def execute_baml_call(
     content: str = Form(None),
     url: str = Form(None),
     baml_code: str = Form(...),
-    return_type: str = Form(...)
+    return_type: str = Form(...),
 ) -> Schema:
-    return await execute_baml(stream=False, file=file, content=content, url=url, baml_code=baml_code, return_type=return_type)
+    return await execute_baml(
+        stream=False,
+        file=file,
+        content=content,
+        url=url,
+        baml_code=baml_code,
+        return_type=return_type,
+    )
 
 
 @app.post("/execute_baml/stream")
@@ -50,9 +57,16 @@ async def execute_baml_stream(
     content: str = Form(None),
     url: str = Form(None),
     baml_code: str = Form(...),
-    return_type: str = Form(...)
+    return_type: str = Form(...),
 ) -> StreamingResponse:
-    return await execute_baml(stream=True, file=file, content=content, url=url, baml_code=baml_code, return_type=return_type)
+    return await execute_baml(
+        stream=True,
+        file=file,
+        content=content,
+        url=url,
+        baml_code=baml_code,
+        return_type=return_type,
+    )
 
 
 @app.post("/generate_baml/call")
@@ -95,7 +109,7 @@ async def execute_baml(
     url: str = Form(None),
     baml_code: str = Form(...),
     return_type: str = Form(...),
-):   
+):
     final_content = await read_input_content(file, content, url)
     tb = TypeBuilder()
     try:
@@ -107,43 +121,57 @@ async def execute_baml(
         }}
         """)
     except BamlError as e:
-        raise HTTPException(status_code=400, detail={
-            "error": "BamlError",
-            "message": str(e),
-        })
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "BamlError",
+                "message": str(e),
+            },
+        )
     if stream:
-        stream = b.stream.ExecuteBAML(final_content, { "tb": tb })
+        stream = b.stream.ExecuteBAML(final_content, {"tb": tb})
         return handle_stream(stream, lambda x: x.data)
     else:
-        response = await b.ExecuteBAML(final_content, { "tb": tb })
+        response = await b.ExecuteBAML(final_content, {"tb": tb})
         return response.data
+
 
 StreamTypeVar = TypeVar("StreamTypeVar")
 FinalTypeVar = TypeVar("FinalTypeVar")
 
-def handle_stream(stream: BamlStream[StreamTypeVar, FinalTypeVar], to_data: Callable[[StreamTypeVar | FinalTypeVar], Any]):
+
+def handle_stream(
+    stream: BamlStream[StreamTypeVar, FinalTypeVar],
+    to_data: Callable[[StreamTypeVar | FinalTypeVar], Any],
+):
     async def stream_baml():
         try:
             async for chunk in stream:
                 chunk = to_data(chunk)
-                yield json.dumps({ "partial": chunk }) + "\n\n"
+                yield json.dumps({"partial": chunk}) + "\n\n"
                 await asyncio.sleep(0)
             result = await stream.get_final_response()
             final = to_data(result)
-            yield json.dumps({ "final": final }) + "\n\n"
+            yield json.dumps({"final": final}) + "\n\n"
         except Exception as e:
-            yield json.dumps({ "error": str(e) }) + "\n\n"
+            yield json.dumps({"error": str(e)}) + "\n\n"
+
     return StreamingResponse(stream_baml(), media_type="text/event-stream")
+
 
 def convert_to_base64(img: PILImage):
     buffered = io.BytesIO()
     img.save(buffered, format="JPEG")
-    return Image.from_base64(base64=base64.b64encode(buffered.getvalue()).decode("utf-8"), media_type="image/jpeg")
+    return Image.from_base64(
+        base64=base64.b64encode(buffered.getvalue()).decode("utf-8"),
+        media_type="image/jpeg",
+    )
+
 
 async def read_input_content(
     file: Optional[UploadFile] = None,
     content: Optional[str] = None,
-    url: Optional[str] = None
+    url: Optional[str] = None,
 ) -> str | Image | list[Image]:
     """
     Processes the input from one of the following:
@@ -174,14 +202,20 @@ async def read_input_content(
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
             if response.status_code != 200:
-                raise HTTPException(status_code=400, detail="Unable to fetch content from the provided URL")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Unable to fetch content from the provided URL",
+                )
             ctype = response.headers.get("content-type", "")
             if "text" in ctype:
                 return response.text
             else:
                 return base64.b64encode(response.content).decode("utf-8")
     else:
-        raise HTTPException(status_code=400, detail="No valid content provided. Please provide a file, content, or URL.")
+        raise HTTPException(
+            status_code=400,
+            detail="No valid content provided. Please provide a file, content, or URL.",
+        )
 
 
 if __name__ == "__main__":

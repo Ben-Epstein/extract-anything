@@ -5,7 +5,7 @@ vllm_image = (
     modal.Image.debian_slim(python_version="3.12")
     .pip_install(
         "vllm==0.7.2",
-    "huggingface_hub[hf_transfer]==0.26.2",
+        "huggingface_hub[hf_transfer]==0.26.2",
         "flashinfer-python==0.2.0.post2",  # pinning, very unstable
         extra_index_url="https://flashinfer.ai/whl/cu124/torch2.5",
     )
@@ -25,9 +25,7 @@ MODELS_DIR = "/llamas"
 MODEL_NAME = "neuralmagic/Llama-3.2-11B-Vision-Instruct-FP8-dynamic"
 MODEL_REVISION = "95d23e17186bdadbbd97dd8e7271caa610636b5a"
 
-hf_cache_vol = modal.Volume.from_name(
-    "huggingface-cache", create_if_missing=True
-)
+hf_cache_vol = modal.Volume.from_name("huggingface-cache", create_if_missing=True)
 vllm_cache_vol = modal.Volume.from_name("vllm-cache", create_if_missing=True)
 
 app = modal.App("llama-3.2-11b-vision")
@@ -77,4 +75,3 @@ def serve():
     ]
 
     subprocess.Popen(" ".join(cmd), shell=True)
-
