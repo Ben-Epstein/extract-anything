@@ -13,7 +13,7 @@ A ready-to-go repo for building complex extraction systems:
 
 ### Infrastructure
 
-![alt text](./img/infra.jpg)
+![alt text](./img/arch.jpg)
 
 ### Dataflow
 ![alt text](./img/dataflow.jpg)
