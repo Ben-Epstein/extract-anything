@@ -16,8 +16,9 @@ configure-uv:
 		make uv; \
 	fi
 	echo "uv configured"
+	uv sync
 
-setup: configure-uv
+setup: 
 	uv sync
 	npm install -g pnpm
 	npm install next react react-dom
@@ -39,7 +40,7 @@ modal-auth:
 modal-deploy-llama:
 	uv run modal deploy -m modals.llama_modal.llama_3_2_11b --tag=`git rev-parse --short HEAD`
   
-modal-deploy-all:
+modal-deploy-all: configure-uv
 	make modal-deploy-llama
 
 
@@ -47,7 +48,7 @@ modal-deploy-all:
 prefect-auth:
 	uv run prefect cloud login
 
-prefect-deploy:
+prefect-deploy: configure-uv
 	uv run prefect deploy --all --prefect-file ./src/flows/prefect.yaml
 
 show-prefect-profile:
