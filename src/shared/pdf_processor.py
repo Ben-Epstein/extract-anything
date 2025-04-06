@@ -57,7 +57,6 @@ def flatten_nda(
         "confidentiality_period_unit": nda_data.confidentiality_period.unit.name,
         "governing_law": nda_data.governing_law,
         "conf_info_definition": nda_data.confidential_information.general_definition,
-        "effective_date": parse(deadlines.effective_date.value),
         "expiration_date": parse(deadlines.expiration_date.value),
         "confidentiality_end_date": parse(deadlines.confidentiality_end_date.value),
     }

@@ -43,3 +43,13 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = [ "src/extractor", "src/flows", "src/modals", "src/shared"]
+
+
+[tool.mypy]
+check_untyped_defs = true
+exclude = ["baml_src/", "baml_client/", "shared/server.py"]
+
+
+[[tool.mypy.overrides]]
+module = "ruamel.*"
+ignore_missing_imports = true
