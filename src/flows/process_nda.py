@@ -27,11 +27,11 @@ async def configure_gcp():
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/google-serviceaccount.json"
 
 
-BUCKET = GSPath("gs://northeastern-pdf-ndas")
+BUCKET = "gs://northeastern-pdf-ndas"
 # ROOT = pathlib.Path(__file__).parent.parent.parent
-DELTA_OUT = BUCKET / "db"
-DELTA_IN = BUCKET / "unprocessed"
-PROCESSED_PDFs = BUCKET / "processed"
+DELTA_OUT =  "db"
+DELTA_IN = "unprocessed"
+PROCESSED_PDFS = "processed"
 
 
 @task(retries=3, cache_key_fn=task_input_hash)
@@ -110,12 +110,13 @@ def write_delta(df: pl.DataFrame, table: GSPath | str, part_id: bool) -> None:
     # on_cancellation=[notify_slack],  # type: ignore
     flow_run_name="process_ndas",
 )
-async def main(pdf_dir: str | GSPath = DELTA_IN):
+async def main(pdf_dir: str | GSPath | None=None):
     """Process all NDAs in a directory."""
     # print(f"Got new file: {file_path}")
     # pdf_paths = [file_path]
     if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
         await configure_gcp()
+    pdf_dir = pdf_dir or GSPath(BUCKET) / DELTA_IN
     pdf_paths = [p for p in GSPath(pdf_dir).iterdir() if p.name.endswith(".pdf")]
     tasks = [process_pdf(pdf_path) for pdf_path in pdf_paths]
     processed_pdfs = await asyncio.gather(*tasks)
