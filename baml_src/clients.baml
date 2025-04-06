@@ -17,6 +17,7 @@ client<llm> Gemini20Flash {
   options {
     model gemini-2.0-flash-001
     location us-central1
+    credentials env.GOOGLE_APPLICATION_CREDENTIALS
     generation_config {
       temperature 0.0
       seed 42
