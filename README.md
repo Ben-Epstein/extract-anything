@@ -34,28 +34,3 @@ This depends on what LLM you're using. If OpenAI, then the standard OPENAI_API_K
 If you are using LLMs deployed in modal, you need to set `LLM_BASE_URL`
 
 See the `.env.example` for examples.
-
-
-
-"""
-SELECT 
-    n.agreement_type,
-    COUNT(*) AS total_agreements,
-    ROUND(AVG(n.confidentiality_period_length), 2) AS avg_confidentiality_period,
-    COUNT(CASE WHEN r.severity = 'HIGH' THEN 1 END) AS high_risk_count,
-    COUNT(DISTINCT r.nda_id) AS agreements_with_risks,
-    ROUND(COUNT(CASE WHEN r.severity = 'HIGH' THEN 1 END) * 100.0 / COUNT(*), 2) AS high_risk_percentage
-FROM 
-    ndas n
-LEFT JOIN 
-    risks r ON n.nda_id = r.nda_id
-GROUP BY 
-    n.agreement_type
-ORDER BY 
-    high_risk_percentage DESC;
-
-
-CREATE OR REPLACE VIEW train_services AS SELECT * FROM delta_scan('gs://northeastern-pdf-ndas/db/train_services');
-
-select * from train_services;
-"""
