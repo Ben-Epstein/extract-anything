@@ -20,9 +20,6 @@ pull:
 - prefect.deployments.steps.run_shell_script:
     directory: '{{ clone-step.directory }}'
     script: uv sync --no-editable --no-dev
-- prefect.deployments.steps.run_shell_script:
-    directory: '{{ clone-step.directory }}'
-    script: make baml-compile
 
 deployments:
 - name: process-ndas
@@ -46,13 +43,16 @@ deployments:
     timezone: America/New_York
     day_or: true
     active: false
-  # triggers:  # TODO: how do?
-  # - type: event
-  #   enabled: true
-  #   match:
-  #     prefect.resource.id: gcs.bucket.northeastern-pdf-ndas
-  #   expect:
-  #   - gcs.object.created
-  #   parameters:
-  #     file_path: '{{ event.data.name }}'
-  #   name: process-ndas__automation_1
+
+
+    
+# triggers:  # TODO: how do?
+# - type: event
+#   enabled: true
+#   match:
+#     prefect.resource.id: gcs.bucket.northeastern-pdf-ndas
+#   expect:
+#   - gcs.object.created
+#   parameters:
+#     file_path: '{{ event.data.name }}'
+#   name: process-ndas__automation_1
