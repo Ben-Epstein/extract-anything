@@ -1,12 +1,11 @@
+import os
 from pathlib import Path
 import asyncio
-import pathlib
 from prefect import flow
 import polars as pl
 from typing import TypedDict
 from prefect import task
 from prefect.tasks import task_input_hash
-from datetime import timedelta
 from shared.baml_client.async_client import b
 from shared.baml_client import types
 from shared.pdf_processor import (
@@ -17,11 +16,22 @@ from shared.pdf_processor import (
     flatten_nda,
 )
 from deltalake import DeltaTable
+from prefect_gcp import GcpCredentials
+import json
 
 
-ROOT = pathlib.Path(__file__).parent.parent.parent
-DELTA_OUT = ROOT / "processed"
-DELTA_IN = ROOT / "raw"
+async def configure_gcp():
+    gcp_credentials_block: GcpCredentials = await GcpCredentials.load("northeastern-gcs-bucket") # type: ignore
+    with open("/tmp/google-serviceacount.json", "w") as f:
+        json.dump(gcp_credentials_block.service_account_info.get_secret_value(), f) # type: ignore
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/google-serviceaccount.json"
+
+
+BUCKET = Path("gs://northeastern-pdf-ndas")
+# ROOT = pathlib.Path(__file__).parent.parent.parent
+DELTA_OUT = BUCKET / "db"
+DELTA_IN = BUCKET / "unprocessed"
+PROCESSED_PDFs = BUCKET / "processed"
 
 
 @task(retries=3, cache_key_fn=task_input_hash)
@@ -53,11 +63,9 @@ class ProcessedPDF(TypedDict):
     milestones: pl.DataFrame
 
 
-@task(
-    log_prints=True, cache_key_fn=task_input_hash, cache_expiration=timedelta(hours=1)
-)
-async def process_pdf(pdf_path: Path) -> ProcessedPDF:
-    filename = pdf_path.name
+@task(log_prints=True)
+async def process_pdf(pdf_path: Path | str) -> ProcessedPDF:
+    filename = Path(pdf_path).name
     nda_data = await extract_nda_data(pdf_path)
     risk_analysis, deadline_report = await asyncio.gather(
         analyze_nda_risks(nda_data), track_nda_deadlines(nda_data)
@@ -77,13 +85,16 @@ def fill_null(df: pl.DataFrame) -> pl.DataFrame:
     return df
 
 
-def write_delta(df: pl.DataFrame, table: Path | str) -> None:
+def write_delta(df: pl.DataFrame, table: Path | str, part_id: bool) -> None:
     if DeltaTable.is_deltatable(str(table)):
+        predicate = "s.nda_id = t.nda_id"
+        if part_id:
+            predicate += " AND s.part = t.part"
         df.write_delta(
             table,
             mode="merge",
             delta_merge_options={
-                "predicate": "s.nda_id = t.nda_id",
+                "predicate": predicate,
                 "source_alias": "s",
                 "target_alias": "t",
             },
@@ -99,8 +110,12 @@ def write_delta(df: pl.DataFrame, table: Path | str) -> None:
     # on_cancellation=[notify_slack],  # type: ignore
     flow_run_name="process_ndas",
 )
-async def main(pdf_dir: str | Path):
+async def main(pdf_dir: str | Path = DELTA_IN):
     """Process all NDAs in a directory."""
+    # print(f"Got new file: {file_path}")
+    # pdf_paths = [file_path]
+    if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+        await configure_gcp()
     pdf_paths = [p for p in Path(pdf_dir).iterdir() if p.suffix == ".pdf"]
     tasks = [process_pdf(pdf_path) for pdf_path in pdf_paths]
     processed_pdfs = await asyncio.gather(*tasks)
@@ -113,7 +128,7 @@ async def main(pdf_dir: str | Path):
     dfs = [ndas_df, parties_df, risks_df, milestones_df]
     tables = ["ndas", "parties", "risks", "milestones"]
     for df, table in zip(dfs, tables):
-        write_delta(fill_null(df), DELTA_OUT / table)
+        write_delta(fill_null(df), DELTA_OUT / table, part_id=True if table != "ndas" else False)
 
 
 if __name__ == "__main__":

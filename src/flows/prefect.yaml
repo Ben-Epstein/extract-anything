@@ -12,7 +12,7 @@ pull:
 - prefect.deployments.steps.git_clone:
     id: clone-step
     repository: https://github.com/ben-epstein/extract-anything
-    branch: main
+    branch: northeastern-lecture
     credentials: '{{ prefect.blocks.github-credentials.modal-github-pull }}'
 - prefect.deployments.steps.run_shell_script:
     directory: '{{ clone-step.directory }}'
@@ -20,13 +20,16 @@ pull:
 - prefect.deployments.steps.run_shell_script:
     directory: '{{ clone-step.directory }}'
     script: uv sync --no-editable --no-dev
+- prefect.deployments.steps.run_shell_script:
+    directory: '{{ clone-step.directory }}'
+    script: make baml-compile
 
 deployments:
 - name: process-ndas
   version:
   tags: []
   description: Automatically process NDA pdfs from raw and uploads them to the database
-  entrypoint: flows.proces_nda:main
+  entrypoint: flows.process_nda:main
   enforce_parameter_schema: true
   parameters: {}
   work_pool:
@@ -34,12 +37,22 @@ deployments:
     work_queue_name: default
     job_variables:
       secrets:
-      - supabase # secrets from modal for access credentials
+      - supabase
       env:
-        UV_PROJECT_ENVIRONMENT: /usr/local # Required with uv to install to system python in modal
+        UV_PROJECT_ENVIRONMENT: /usr/local
   concurrency_limit:
   schedules:
   - cron: '*/30 20-7 * * *'
     timezone: America/New_York
     day_or: true
-    active: true
+    active: false
+  # triggers:  # TODO: how do?
+  # - type: event
+  #   enabled: true
+  #   match:
+  #     prefect.resource.id: gcs.bucket.northeastern-pdf-ndas
+  #   expect:
+  #   - gcs.object.created
+  #   parameters:
+  #     file_path: '{{ event.data.name }}'
+  #   name: process-ndas__automation_1

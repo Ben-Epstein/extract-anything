@@ -65,10 +65,11 @@ def flatten_nda(
 def extract_parties(nda_data: types.NDA, filename: str) -> list[dict[str, Any]]:
     """Extract parties from NDA for DataFrame conversion."""
     parties = []
-    for party in nda_data.parties:
+    for part_id, party in enumerate(nda_data.parties):
         parties.append(
             {
                 "nda_id": os.path.splitext(filename)[0],
+                "part": part_id,
                 "party_name": party.name,
                 "party_type": party.type,
                 "party_role": party.role.name,
@@ -96,10 +97,11 @@ def extract_risks(
 ) -> list[dict[str, Any]]:
     """Extract risks from risk analysis for DataFrame conversion."""
     risks = []
-    for risk in risk_analysis.key_risks:
+    for part_id, risk in enumerate(risk_analysis.key_risks):
         risks.append(
             {
                 "nda_id": os.path.splitext(filename)[0],
+                "part": part_id,
                 "section": risk.section,
                 "description": risk.description,
                 "severity": risk.severity.name,
@@ -112,15 +114,16 @@ def extract_risks(
 
 def extract_milestones(
     deadlines: types.DeadlineReport, filename: str
-) -> list[dict[str, str | datetime.date]]:
+) -> list[dict[str, int | str | datetime.date]]:
     return [
         {
             "nda_id": os.path.splitext(filename)[0],
+            "part": part_id,
             "name": milestones.name,
             "date": parse(milestones.date.value),
             "description": milestones.description,
         }
-        for milestones in deadlines.key_milestones
+        for part_id, milestones in enumerate(deadlines.key_milestones)
     ]
 
 

@@ -4,8 +4,20 @@ export VIRTUAL_ENV=.venv
 baml-compile:
 	uv run baml-cli generate --from ./baml_src
 
-setup:
-	uv venv && source .venv/bin/activate
+
+uv:
+	pip install --upgrade 'uv>=0.6,<0.7'
+	uv venv
+
+configure-uv:
+	echo "Setup Start"
+	@if [ ! -d ".venv" ] || ! command -v uv > /dev/null; then \
+		echo "UV not installed or .venv does not exist, running uv"; \
+		make uv; \
+	fi
+	echo "uv configured"
+
+setup: configure-uv
 	uv sync
 	npm install -g pnpm
 	npm install next react react-dom
