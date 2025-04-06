@@ -8,8 +8,8 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "anypathlib>=0.2.0",
     "baml-py==0.81.3",
+    "cloudpathlib>=0.21.0",
     "deltalake>=0.25.5",
     "duckdb>=1.2.1",
     "fastapi[standard]>=0.115.11",

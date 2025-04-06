@@ -17,7 +17,7 @@ from shared.pdf_processor import (
 from deltalake import DeltaTable
 from prefect_gcp import GcpCredentials
 import json
-from anypathlib import AnyPath
+from cloudpathlib import GSPath
 
 
 async def configure_gcp():
@@ -27,7 +27,7 @@ async def configure_gcp():
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/google-serviceaccount.json"
 
 
-BUCKET = AnyPath("gs://northeastern-pdf-ndas")
+BUCKET = GSPath("gs://northeastern-pdf-ndas")
 # ROOT = pathlib.Path(__file__).parent.parent.parent
 DELTA_OUT = BUCKET / "db"
 DELTA_IN = BUCKET / "unprocessed"
@@ -64,8 +64,8 @@ class ProcessedPDF(TypedDict):
 
 
 @task(log_prints=True)
-async def process_pdf(pdf_path: AnyPath | str) -> ProcessedPDF:
-    filename = AnyPath(pdf_path).name
+async def process_pdf(pdf_path: GSPath | str) -> ProcessedPDF:
+    filename = GSPath(pdf_path).name
     nda_data = await extract_nda_data(pdf_path)
     risk_analysis, deadline_report = await asyncio.gather(
         analyze_nda_risks(nda_data), track_nda_deadlines(nda_data)
@@ -85,7 +85,7 @@ def fill_null(df: pl.DataFrame) -> pl.DataFrame:
     return df
 
 
-def write_delta(df: pl.DataFrame, table: AnyPath | str, part_id: bool) -> None:
+def write_delta(df: pl.DataFrame, table: GSPath | str, part_id: bool) -> None:
     if DeltaTable.is_deltatable(str(table)):
         predicate = "s.nda_id = t.nda_id"
         if part_id:
@@ -110,13 +110,13 @@ def write_delta(df: pl.DataFrame, table: AnyPath | str, part_id: bool) -> None:
     # on_cancellation=[notify_slack],  # type: ignore
     flow_run_name="process_ndas",
 )
-async def main(pdf_dir: str | AnyPath = DELTA_IN):
+async def main(pdf_dir: str | GSPath = DELTA_IN):
     """Process all NDAs in a directory."""
     # print(f"Got new file: {file_path}")
     # pdf_paths = [file_path]
     if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
         await configure_gcp()
-    pdf_paths = [p for p in AnyPath(pdf_dir).iterdir() if p.name.endswith(".pdf")]
+    pdf_paths = [p for p in GSPath(pdf_dir).iterdir() if p.name.endswith(".pdf")]
     tasks = [process_pdf(pdf_path) for pdf_path in pdf_paths]
     processed_pdfs = await asyncio.gather(*tasks)
 
