@@ -1,46 +1,35 @@
 type ValidDate = string @check(valid_date_format, {{ this|regex_match('^\d{4}-\d{2}-\d{2}$')}})
 
 class NDA {
-  // Basic contract information
+
   title string
-  effective_date string @description("The date when the agreement becomes effective")
-  agreement_type AgreementType @description("Whether the NDA is unilateral or mutual")
-  
-  // Parties involved
-  parties Party[] @description("The organizations or individuals involved in the agreement")
-  
-  // Core NDA content
-  confidential_information ConfidentialInformation @description("Definition and scope of what is considered confidential")
+  effective_date string @description("Formatted YYYY-MM-DD") // Can't use ValidDate because fields with checks cannot be parameters to functions, and NDA is a param
+  agreement_type AgreementType
+  parties Party[]
+  confidential_information ConfidentialInformation
   exclusions string[] @description("Information explicitly excluded from confidentiality obligations")
-  obligations Obligation[] @description("Responsibilities of the receiving parties")
+  obligations Obligation[]
+  term_duration Duration 
+  confidentiality_period Duration
   
-  // Time-related information
-  term_duration Duration @description("How long the agreement will last")
-  confidentiality_period Duration @description("How long confidentiality must be maintained")
-  
-  // Legal provisions
   governing_law string @description("The state or jurisdiction whose laws govern the agreement")
-  dispute_resolution DisputeResolution @description("How disputes will be handled")
-  remedies Remedy[] @description("Available remedies for breach of contract")
+  dispute_resolution DisputeResolution
+  remedies Remedy[] @alias("breach_of_contract_remedies") 
   
-  // Additional information
   exhibits Exhibit[] @description("Additional attachments or exhibits to the agreement")
-  signatures Signature[] @description("Signatures of the parties")
+  signatures Signature[]
 }
 
-// Types of NDAs
 enum AgreementType {
-  MUTUAL @description("Both parties disclose confidential information to each other")
-  UNILATERAL @description("Only one party discloses confidential information")
+  MUTUAL
+  UNILATERAL
 }
-
-// Parties to the agreement
 class Party {
   name string @description("Full legal name of the company or individual")
   type string @description("Type of entity (corporation, LLC, individual, etc.)")
-  address Address @description("Physical address of the party")
-  role PartyRole @description("Role in the agreement")
-  contact_person ContactPerson? @description("Primary contact for the party")
+  address Address
+  role PartyRole
+  contact_person ContactPerson? @alias("primary_contact_person")
 }
 
 class Address {
@@ -76,10 +65,9 @@ class Obligation {
   descriptions string[] @description("Descriptions of what the party must or must not do")
 }
 
-// Time periods
 class Duration {
-  length int @description("Numeric length of time")
-  unit TimeUnit @description("Unit of time measurement")
+  length int
+  unit TimeUnit
 }
 
 enum TimeUnit {
@@ -89,33 +77,25 @@ enum TimeUnit {
   INDEFINITE
 }
 
-// Dispute resolution information
 class DisputeResolution {
   method string @description("Method of dispute resolution (litigation, arbitration, etc.)")
   location string @description("Location where disputes will be resolved")
 }
-
-// Available remedies
 class Remedy {
   type string @description("Type of remedy (damages, injunctive relief, etc.)")
   description string @description("Description of the remedy")
 }
-
-// Exhibits or attachments
 class Exhibit {
   title string
-  content string @description("Content or summary of the exhibit")
+  content string
 }
-
-// Signature information
 class Signature {
   party_name string
-  signatory_name string @description("Name of the person signing")
-  title string @description("Title of the signatory")
+  signatory_name string
+  title string
   date string @description("Date of signing. Formatted YYYY-MM-DD") // We cant use checks because NDA is a function parameter. BAML doesnt support params with checks @check(valid_date_format, {{ this|regex_match('^\\d{4}-\\d{2}-\\d{2}$')}})
 }
 
-// Main extraction function
 function ExtractNDA(document: string | image | image[]) -> NDA {
   client AppFallback
   prompt #"
@@ -129,7 +109,6 @@ function ExtractNDA(document: string | image | image[]) -> NDA {
   "#
 }
 
-// Risk analysis function
 function AnalyzeNDARisks(nda: NDA) -> RiskAnalysis {
   client AppFallback
   prompt #"
@@ -178,30 +157,25 @@ function AnalyzeNDARisks(nda: NDA) -> RiskAnalysis {
 }
 
 // Risk analysis output schema
-class RiskAnalysis {
-  overall_risk_level RiskLevel @description("Overall risk assessment of the NDA")
-  key_risks Risk[] @description("List of identified risks")
-  recommendations string[] @description("Recommendations to mitigate risks")
-}
-
 enum RiskLevel {
-  LOW @description("Minimal risk, standard terms")
-  MEDIUM @description("Some concerning terms that warrant attention")
-  HIGH @description("Significant risks that require negotiation")
-}
-
-class Risk {
-  section string @description("Section of the NDA where the risk is found")
-  description string @description("Description of the risk")
-  severity RiskSeverity @description("How severe the risk is")
-  potential_impact string @description("Potential impact of the risk")
-}
-
-enum RiskSeverity {
-  LOW
+  LOW 
   MEDIUM
   HIGH
 }
+
+class RiskAnalysis {
+  overall_risk_level RiskLevel
+  key_risks Risk[]
+  recommendations string[]
+}
+
+class Risk {
+  section string
+  description string
+  severity RiskLevel
+  potential_impact string
+}
+
 
 // Deadline tracking function
 function TrackDeadlines(nda: NDA) -> DeadlineReport {
@@ -221,15 +195,15 @@ function TrackDeadlines(nda: NDA) -> DeadlineReport {
 }
 
 class DeadlineReport {
-  effective_date ValidDate @description("When the agreement becomes effective. Formatted YYYY-MM-DD")
-  expiration_date ValidDate @description("When the agreement expires. Formatted YYYY-MM-DD")
-  confidentiality_end_date ValidDate @description("When confidentiality obligations end. Formatted YYYY-MM-DD")
+  effective_date ValidDate
+  expiration_date ValidDate
+  confidentiality_end_date ValidDate
   key_milestones Milestone[] @description("Important milestones or deadlines")
 }
 
 class Milestone {
   name string @description("Name of the milestone")
-  date ValidDate @description("Date of the milestone. Formatted YYYY-MM-DD")
+  date ValidDate @alias("milesone_date")
   description string @description("Description of what happens on this date")
 }
 
