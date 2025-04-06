@@ -13,7 +13,8 @@
 # flake8: noqa: E501,F401,F821
 # pylint: disable=unused-import,line-too-long
 # fmt: off
-from baml_py.logging import set_log_level, get_log_level, set_log_json_mode, set_log_max_chunk_length
+from baml_py.logging import get_log_level, set_log_json_mode, set_log_level, set_log_max_chunk_length
+
 from .globals import reset_baml_env_vars
 
 __all__ = ["set_log_level", "get_log_level", "set_log_json_mode", "reset_baml_env_vars", "set_log_max_chunk_length"]

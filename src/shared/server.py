@@ -1,21 +1,22 @@
 import asyncio
-import json
 import base64
+import io
+import json
 from typing import Any, Callable, Optional, TypeVar
-from baml_py import BamlStream, Image
 
 import httpx
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 import uvicorn
-from shared.baml_client import b
-from shared.baml_client.type_builder import TypeBuilder
-from fastapi.responses import StreamingResponse
-from fastapi.middleware.cors import CORSMiddleware
-from shared.baml_client.types import Schema
+from baml_py import BamlStream, Image
 from baml_py.errors import BamlError
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pdf2image import convert_from_bytes
 from PIL import Image as PILImage
-import io
+
+from shared.baml_client import b
+from shared.baml_client.type_builder import TypeBuilder
+from shared.baml_client.types import Schema
 
 app = FastAPI()
 
@@ -147,8 +148,8 @@ def handle_stream(
     async def stream_baml():
         try:
             async for chunk in stream:
-                chunk = to_data(chunk)
-                yield json.dumps({"partial": chunk}) + "\n\n"
+                data_chunk = to_data(chunk)
+                yield json.dumps({"partial": data_chunk}) + "\n\n"
                 await asyncio.sleep(0)
             result = await stream.get_final_response()
             final = to_data(result)
@@ -173,11 +174,11 @@ async def read_input_content(
     content: Optional[str] = None,
     url: Optional[str] = None,
 ) -> str | Image | list[Image]:
-    """
-    Processes the input from one of the following:
-    - file: an uploaded file (image, audio, PDF or text)
-    - content: a text string
-    - url: a URL to an image, audio, PDF or text resource
+    """Processes the input from one of the following.
+
+        - file: an uploaded file (image, audio, PDF or text)
+        - content: a text string
+        - url: a URL to an image, audio, PDF or text resource
     Returns a string that is either plain text or a base64 encoded representation.
     """
     if content is not None:

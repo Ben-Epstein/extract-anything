@@ -1,7 +1,9 @@
-import os
-from shared import GOOGLE_APPLICATION_CREDENTIALS
-from google.cloud import storage
 import json
+import os
+
+from google.cloud import storage
+
+from shared import GOOGLE_APPLICATION_CREDENTIALS
 
 
 def _build_hmac_keys(project_id: str, service_account_email: str) -> tuple[str, str]:
@@ -14,8 +16,7 @@ def _build_hmac_keys(project_id: str, service_account_email: str) -> tuple[str, 
 
 
 def get_hmac_keys() -> tuple[str, str]:
-    """
-    Retrieves the access key and secret key for the service account specified.
+    """Retrieves the access key and secret key for the service account specified.
 
     Will look for values in the following order:
         * GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_SERVICEACCOUNT env vars

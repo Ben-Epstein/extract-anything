@@ -16,7 +16,8 @@ vllm_image = (
 """
 File "/usr/local/lib/python3.12/site-packages/vllm/v1/attention/backends/flash_attn.py", line 134, in __init__
   raise NotImplementedError("Encoder self-attention and "
-NotImplementedError: Encoder self-attention and encoder/decoder cross-attention are not implemented for FlashAttentionImpl
+NotImplementedError: Encoder self-attention and encoder/decoder cross-attention
+                                                                              are not implemented for FlashAttentionImpl
 """
 vllm_image = vllm_image.env({"VLLM_USE_V1": "0"})
 

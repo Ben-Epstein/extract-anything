@@ -13,19 +13,22 @@
 # flake8: noqa: E501,F401,F821
 # pylint: disable=unused-import,line-too-long
 # fmt: off
-from typing import Any, Dict, List, Optional, TypeVar, Union, TypedDict, Type, Literal, cast
-from typing_extensions import NotRequired
 import pprint
+from typing import Any, Dict, List, Literal, Optional, Type, TypedDict, TypeVar, Union, cast
 
 import baml_py
 from pydantic import BaseModel, ValidationError, create_model
+from typing_extensions import NotRequired
 
 from . import partial_types, types
-from .types import Checked, Check
-from .type_builder import TypeBuilder
-from .parser import LlmResponseParser, LlmStreamParser
 from .async_request import AsyncHttpRequest, AsyncHttpStreamRequest
-from .globals import DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_CTX, DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME
+from .globals import (
+    DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_CTX,
+    DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME,
+)
+from .parser import LlmResponseParser, LlmStreamParser
+from .type_builder import TypeBuilder
+from .types import Check, Checked
 
 OutputType = TypeVar('OutputType')
 
@@ -63,8 +66,7 @@ class BamlAsyncClient:
       client_registry: Optional[baml_py.baml_py.ClientRegistry] = None,
       collector: Optional[Union[baml_py.baml_py.Collector, List[baml_py.baml_py.Collector]]] = None,
     ) -> "BamlAsyncClient":
-      """
-      Returns a new instance of BamlAsyncClient with explicitly typed baml options
+      """Returns a new instance of BamlAsyncClient with explicitly typed baml options
       for Python 3.8 compatibility.
       """
       new_options = self.__baml_options.copy()
@@ -99,7 +101,7 @@ class BamlAsyncClient:
     def parse_stream(self):
       return self.__llm_stream_parser
 
-    
+
     async def AnalyzeNDARisks(
         self,
         nda: types.NDA,
@@ -126,7 +128,7 @@ class BamlAsyncClient:
         collectors,
       )
       return cast(types.RiskAnalysis, raw.cast_to(types, types, partial_types, False))
-    
+
     async def ExecuteBAML(
         self,
         content: Union[str, baml_py.Image, baml_py.Audio, List[baml_py.Image]],
@@ -153,7 +155,7 @@ class BamlAsyncClient:
         collectors,
       )
       return cast(types.Response, raw.cast_to(types, types, partial_types, False))
-    
+
     async def ExtractNDA(
         self,
         document: Union[str, baml_py.Image, List[baml_py.Image]],
@@ -180,7 +182,7 @@ class BamlAsyncClient:
         collectors,
       )
       return cast(types.NDA, raw.cast_to(types, types, partial_types, False))
-    
+
     async def GenerateBAML(
         self,
         content: Union[str, baml_py.Image, baml_py.Audio, List[baml_py.Image]],
@@ -207,7 +209,7 @@ class BamlAsyncClient:
         collectors,
       )
       return cast(types.Schema, raw.cast_to(types, types, partial_types, False))
-    
+
     async def TrackDeadlines(
         self,
         nda: types.NDA,
@@ -234,7 +236,7 @@ class BamlAsyncClient:
         collectors,
       )
       return cast(types.DeadlineReport, raw.cast_to(types, types, partial_types, False))
-    
+
 
 
 class BamlStreamClient:
@@ -246,7 +248,7 @@ class BamlStreamClient:
       self.__ctx_manager = ctx_manager
       self.__baml_options = baml_options or {}
 
-    
+
     def AnalyzeNDARisks(
         self,
         nda: types.NDA,
@@ -279,7 +281,7 @@ class BamlStreamClient:
         lambda x: cast(types.RiskAnalysis, x.cast_to(types, types, partial_types, False)),
         self.__ctx_manager.get(),
       )
-    
+
     def ExecuteBAML(
         self,
         content: Union[str, baml_py.Image, baml_py.Audio, List[baml_py.Image]],
@@ -312,7 +314,7 @@ class BamlStreamClient:
         lambda x: cast(types.Response, x.cast_to(types, types, partial_types, False)),
         self.__ctx_manager.get(),
       )
-    
+
     def ExtractNDA(
         self,
         document: Union[str, baml_py.Image, List[baml_py.Image]],
@@ -345,7 +347,7 @@ class BamlStreamClient:
         lambda x: cast(types.NDA, x.cast_to(types, types, partial_types, False)),
         self.__ctx_manager.get(),
       )
-    
+
     def GenerateBAML(
         self,
         content: Union[str, baml_py.Image, baml_py.Audio, List[baml_py.Image]],
@@ -378,7 +380,7 @@ class BamlStreamClient:
         lambda x: cast(types.Schema, x.cast_to(types, types, partial_types, False)),
         self.__ctx_manager.get(),
       )
-    
+
     def TrackDeadlines(
         self,
         nda: types.NDA,
@@ -411,7 +413,7 @@ class BamlStreamClient:
         lambda x: cast(types.DeadlineReport, x.cast_to(types, types, partial_types, False)),
         self.__ctx_manager.get(),
       )
-    
+
 
 
 b = BamlAsyncClient(DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME, DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_CTX)

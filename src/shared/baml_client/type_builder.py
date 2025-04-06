@@ -14,8 +14,11 @@
 # pylint: disable=unused-import,line-too-long
 # fmt: off
 import typing
-from baml_py.baml_py import FieldType, EnumValueBuilder, EnumBuilder, ClassBuilder
-from baml_py.type_builder import TypeBuilder as _TypeBuilder, ClassPropertyBuilder
+
+from baml_py.baml_py import ClassBuilder, EnumBuilder, EnumValueBuilder, FieldType
+from baml_py.type_builder import ClassPropertyBuilder
+from baml_py.type_builder import TypeBuilder as _TypeBuilder
+
 from .globals import DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME
 
 
@@ -28,7 +31,7 @@ class TypeBuilder(_TypeBuilder):
         ), runtime=DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME)
 
 
-    
+
     @property
     def Response(self) -> "ResponseBuilder":
         return ResponseBuilder(self)
@@ -50,7 +53,7 @@ class ResponseBuilder:
     @property
     def props(self) -> "ResponseProperties":
         return self.__props
-    
+
     def list_properties(self) -> typing.List[typing.Tuple[str, ClassPropertyBuilder]]:
         return [(name, ClassPropertyBuilder(self.__bldr.property(name))) for name in self.__properties]
 
@@ -64,7 +67,7 @@ class ResponseProperties:
         self.__bldr = cls_bldr
         self.__properties = properties
 
-    
+
 
     def __getattr__(self, name: str) -> ClassPropertyBuilder:
         if name not in self.__properties:

@@ -64,3 +64,35 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "google.cloud.*"
 ignore_missing_imports = true
+
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+# Include rules for: pyFlakes, pycodestyle (Err/Warn), pyDocstyle, Isort, Flake8-FIXme, PyLinT, NumPY, debugger
+# See rules and codes: https://docs.astral.sh/ruff/rules/
+select = ["F", "E", "W", "D", "I001", "FIX", "PL", "NPY", "T100"]
+dummy-variable-rgx = "_$|dummy"
+ignore = [
+    "FIX002",   # block TODO comments
+    "D104",     # require package __init__ docstring
+    "D100",     # require module file docstring
+    "D101",     # Class docstrings
+    "D107",     # Module docstrings
+    "D103",     # function docstrings
+    "D102",     # public method docstrings
+    "PLR2004",  # Magic value in comparison
+]
+extend-safe-fixes = ["F401"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/shared/baml_client/**" = ["D205"]
+"tests/**" = ["PLR2004"]
+
+[tool.ruff.lint.pylint]
+max-args = 10
+
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

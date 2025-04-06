@@ -13,14 +13,14 @@
 # flake8: noqa: E501,F401,F821
 # pylint: disable=unused-import,line-too-long
 # fmt: off
-from typing import Any, Dict, List, Optional, Union, TypedDict, Type, Literal
-from typing_extensions import NotRequired
+from typing import Any, Dict, List, Literal, Optional, Type, TypedDict, Union
 
 import baml_py
+from typing_extensions import NotRequired
 
 from . import types
-from .types import Checked, Check
 from .type_builder import TypeBuilder
+from .types import Check, Checked
 
 
 class BamlCallOptions(TypedDict, total=False):
@@ -36,7 +36,7 @@ class HttpRequest:
       self.__runtime = runtime
       self.__ctx_manager = ctx_manager
 
-    
+
     def AnalyzeNDARisks(
         self,
         nda: types.NDA,
@@ -59,7 +59,7 @@ class HttpRequest:
         __cr__,
         False,
       )
-    
+
     def ExecuteBAML(
         self,
         content: Union[str, baml_py.Image, baml_py.Audio, List[baml_py.Image]],
@@ -82,7 +82,7 @@ class HttpRequest:
         __cr__,
         False,
       )
-    
+
     def ExtractNDA(
         self,
         document: Union[str, baml_py.Image, List[baml_py.Image]],
@@ -105,7 +105,7 @@ class HttpRequest:
         __cr__,
         False,
       )
-    
+
     def GenerateBAML(
         self,
         content: Union[str, baml_py.Image, baml_py.Audio, List[baml_py.Image]],
@@ -128,7 +128,7 @@ class HttpRequest:
         __cr__,
         False,
       )
-    
+
     def TrackDeadlines(
         self,
         nda: types.NDA,
@@ -151,7 +151,7 @@ class HttpRequest:
         __cr__,
         False,
       )
-    
+
 
 
 class HttpStreamRequest:
@@ -162,7 +162,7 @@ class HttpStreamRequest:
       self.__runtime = runtime
       self.__ctx_manager = ctx_manager
 
-    
+
     def AnalyzeNDARisks(
         self,
         nda: types.NDA,
@@ -185,7 +185,7 @@ class HttpStreamRequest:
         __cr__,
         True,
       )
-    
+
     def ExecuteBAML(
         self,
         content: Union[str, baml_py.Image, baml_py.Audio, List[baml_py.Image]],
@@ -208,7 +208,7 @@ class HttpStreamRequest:
         __cr__,
         True,
       )
-    
+
     def ExtractNDA(
         self,
         document: Union[str, baml_py.Image, List[baml_py.Image]],
@@ -231,7 +231,7 @@ class HttpStreamRequest:
         __cr__,
         True,
       )
-    
+
     def GenerateBAML(
         self,
         content: Union[str, baml_py.Image, baml_py.Audio, List[baml_py.Image]],
@@ -254,7 +254,7 @@ class HttpStreamRequest:
         __cr__,
         True,
       )
-    
+
     def TrackDeadlines(
         self,
         nda: types.NDA,
@@ -277,7 +277,7 @@ class HttpStreamRequest:
         __cr__,
         True,
       )
-    
+
 
 
 __all__ = ["HttpRequest", "HttpStreamRequest"]

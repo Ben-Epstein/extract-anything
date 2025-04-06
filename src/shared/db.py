@@ -1,4 +1,5 @@
 import duckdb
+
 from shared.gcs import get_hmac_keys
 
 

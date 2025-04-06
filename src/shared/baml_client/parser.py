@@ -13,14 +13,14 @@
 # flake8: noqa: E501,F401,F821
 # pylint: disable=unused-import,line-too-long
 # fmt: off
-from typing import Any, Dict, List, Optional, Union, TypedDict, Type, Literal, cast
-from typing_extensions import NotRequired
+from typing import Any, Dict, List, Literal, Optional, Type, TypedDict, Union, cast
 
 import baml_py
+from typing_extensions import NotRequired
 
-from . import types, partial_types
-from .types import Checked, Check
+from . import partial_types, types
 from .type_builder import TypeBuilder
+from .types import Check, Checked
 
 
 class BamlCallOptions(TypedDict, total=False):
@@ -36,7 +36,7 @@ class LlmResponseParser:
       self.__runtime = runtime
       self.__ctx_manager = ctx_manager
 
-    
+
     def AnalyzeNDARisks(
         self,
         llm_response: str,
@@ -62,7 +62,7 @@ class LlmResponseParser:
       )
 
       return cast(types.RiskAnalysis, parsed)
-    
+
     def ExecuteBAML(
         self,
         llm_response: str,
@@ -88,7 +88,7 @@ class LlmResponseParser:
       )
 
       return cast(types.Response, parsed)
-    
+
     def ExtractNDA(
         self,
         llm_response: str,
@@ -114,7 +114,7 @@ class LlmResponseParser:
       )
 
       return cast(types.NDA, parsed)
-    
+
     def GenerateBAML(
         self,
         llm_response: str,
@@ -140,7 +140,7 @@ class LlmResponseParser:
       )
 
       return cast(types.Schema, parsed)
-    
+
     def TrackDeadlines(
         self,
         llm_response: str,
@@ -166,7 +166,7 @@ class LlmResponseParser:
       )
 
       return cast(types.DeadlineReport, parsed)
-    
+
 
 
 class LlmStreamParser:
@@ -177,7 +177,7 @@ class LlmStreamParser:
       self.__runtime = runtime
       self.__ctx_manager = ctx_manager
 
-    
+
     def AnalyzeNDARisks(
         self,
         llm_response: str,
@@ -203,7 +203,7 @@ class LlmStreamParser:
       )
 
       return cast(partial_types.RiskAnalysis, parsed)
-    
+
     def ExecuteBAML(
         self,
         llm_response: str,
@@ -229,7 +229,7 @@ class LlmStreamParser:
       )
 
       return cast(partial_types.Response, parsed)
-    
+
     def ExtractNDA(
         self,
         llm_response: str,
@@ -255,7 +255,7 @@ class LlmStreamParser:
       )
 
       return cast(partial_types.NDA, parsed)
-    
+
     def GenerateBAML(
         self,
         llm_response: str,
@@ -281,7 +281,7 @@ class LlmStreamParser:
       )
 
       return cast(partial_types.Schema, parsed)
-    
+
     def TrackDeadlines(
         self,
         llm_response: str,
@@ -307,7 +307,7 @@ class LlmStreamParser:
       )
 
       return cast(partial_types.DeadlineReport, parsed)
-    
+
 
 
 __all__ = ["LlmResponseParser", "LlmStreamParser"]

@@ -1,12 +1,15 @@
-import os
 import asyncio
-from prefect import flow
-import polars as pl
 from typing import TypedDict
-from prefect import task
+
+import polars as pl
+from cloudpathlib import GSPath
+from deltalake import DeltaTable
+from prefect import flow, task
 from prefect.tasks import task_input_hash
-from shared.baml_client.async_client import b
+
+from flows.hooks import notify_slack
 from shared.baml_client import types
+from shared.baml_client.async_client import b
 from shared.pdf_processor import (
     convert_pdf_to_single_image,
     extract_milestones,
@@ -14,22 +17,8 @@ from shared.pdf_processor import (
     extract_risks,
     flatten_nda,
 )
-from deltalake import DeltaTable
-from cloudpathlib import GSPath
 
-
-# async def configure_gcp():
-#     gcp_credentials_block: GcpCredentials = await GcpCredentials.load(
-#         "northeastern-gcs-bucket"
-#     )  # type: ignore
-#     sa_file = "/tmp/google-serviceaccount.json"
-#     with open(sa_file, "w") as f:
-#         json.dump(gcp_credentials_block.service_account_info.get_secret_value(), f)  # type: ignore
-#         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = sa_file
-
-print("LOAD")
 BUCKET = "gs://northeastern-pdf-ndas"
-# ROOT = pathlib.Path(__file__).parent.parent.parent
 DELTA_OUT = "db"
 DELTA_IN = "unprocessed"
 PROCESSED_PDFS = "processed"
@@ -68,9 +57,7 @@ class ProcessedPDF(TypedDict):
 async def process_pdf(pdf_path: GSPath | str) -> ProcessedPDF:
     filename = GSPath(pdf_path).name
     nda_data = await extract_nda_data(pdf_path)
-    risk_analysis, deadline_report = await asyncio.gather(
-        analyze_nda_risks(nda_data), track_nda_deadlines(nda_data)
-    )
+    risk_analysis, deadline_report = await asyncio.gather(analyze_nda_risks(nda_data), track_nda_deadlines(nda_data))
     return ProcessedPDF(
         nda=pl.from_dict(flatten_nda(nda_data, deadline_report, filename)),
         parties=pl.from_dicts(extract_parties(nda_data, filename)),
@@ -106,16 +93,13 @@ def write_delta(df: pl.DataFrame, table: GSPath | str, part_id: bool) -> None:
 
 @flow(
     log_prints=True,
-    # on_failure=[notify_slack],  # type: ignore
-    # on_crashed=[notify_slack],  # type: ignore
-    # on_cancellation=[notify_slack],  # type: ignore
+    on_failure=[notify_slack],  # type: ignore
+    on_crashed=[notify_slack],  # type: ignore
+    on_cancellation=[notify_slack],  # type: ignore
     flow_run_name="process_ndas",
 )
 async def main(pdf_dir: str | GSPath | None = None):
     """Process all NDAs in a directory."""
-    # if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-    # await configure_gcp()
-    print("Expecting value here", os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
     pdf_dir = pdf_dir or GSPath(BUCKET) / DELTA_IN
     delta_out = GSPath(BUCKET) / DELTA_OUT
     pdf_paths = [p for p in GSPath(pdf_dir).iterdir() if p.name.endswith(".pdf")]
@@ -130,9 +114,7 @@ async def main(pdf_dir: str | GSPath | None = None):
     dfs = [ndas_df, parties_df, risks_df, milestones_df]
     tables = ["ndas", "parties", "risks", "milestones"]
     for df, table in zip(dfs, tables):
-        write_delta(
-            fill_null(df), delta_out / table, part_id=True if table != "ndas" else False
-        )
+        write_delta(fill_null(df), delta_out / table, part_id=True if table != "ndas" else False)
 
 
 if __name__ == "__main__":
