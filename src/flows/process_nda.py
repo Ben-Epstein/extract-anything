@@ -15,21 +15,19 @@ from shared.pdf_processor import (
     flatten_nda,
 )
 from deltalake import DeltaTable
-from prefect_gcp import GcpCredentials
-import json
 from cloudpathlib import GSPath
 
 
-async def configure_gcp():
-    gcp_credentials_block: GcpCredentials = await GcpCredentials.load(
-        "northeastern-gcs-bucket"
-    )  # type: ignore
-    sa_file = "/tmp/google-serviceaccount.json"
-    with open(sa_file, "w") as f:
-        json.dump(gcp_credentials_block.service_account_info.get_secret_value(), f)  # type: ignore
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = sa_file
+# async def configure_gcp():
+#     gcp_credentials_block: GcpCredentials = await GcpCredentials.load(
+#         "northeastern-gcs-bucket"
+#     )  # type: ignore
+#     sa_file = "/tmp/google-serviceaccount.json"
+#     with open(sa_file, "w") as f:
+#         json.dump(gcp_credentials_block.service_account_info.get_secret_value(), f)  # type: ignore
+#         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = sa_file
 
-
+print("LOAD")
 BUCKET = "gs://northeastern-pdf-ndas"
 # ROOT = pathlib.Path(__file__).parent.parent.parent
 DELTA_OUT = "db"
@@ -115,10 +113,9 @@ def write_delta(df: pl.DataFrame, table: GSPath | str, part_id: bool) -> None:
 )
 async def main(pdf_dir: str | GSPath | None = None):
     """Process all NDAs in a directory."""
-    # print(f"Got new file: {file_path}")
-    # pdf_paths = [file_path]
-    if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-        await configure_gcp()
+    # if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+    # await configure_gcp()
+    print("Expecting value here", os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
     pdf_dir = pdf_dir or GSPath(BUCKET) / DELTA_IN
     delta_out = GSPath(BUCKET) / DELTA_OUT
     pdf_paths = [p for p in GSPath(pdf_dir).iterdir() if p.name.endswith(".pdf")]
@@ -139,4 +136,4 @@ async def main(pdf_dir: str | GSPath | None = None):
 
 
 if __name__ == "__main__":
-    asyncio.run(main(DELTA_IN))
+    asyncio.run(main())

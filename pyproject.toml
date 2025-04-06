@@ -55,3 +55,12 @@ exclude = ["baml_src/", "baml_client/", "shared/server.py"]
 [[tool.mypy.overrides]]
 module = "ruamel.*"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "prefect_gcp.*"
+ignore_missing_imports = true
+
+
+[[tool.mypy.overrides]]
+module = "google.cloud.*"
+ignore_missing_imports = true
