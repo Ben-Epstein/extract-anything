@@ -1,12 +1,11 @@
 // Learn more about clients at https://docs.boundaryml.com/docs/snippets/clients/overview
 
 client<llm> Llama32_11b_vision {
-  provider openai
+  provider openai-generic
   options {
     model "neuralmagic/Llama-3.2-11B-Vision-Instruct-FP8-dynamic"
     api_key "super-secret-key"
-    // You need to set your modal app url here
-    base_url "{YOUR_MODAL_APP_URL}/v1"
+    base_url env.LLM_BASE_URL
     temperature 0.0
     seed 42
   }
@@ -17,8 +16,8 @@ client<llm> Gemini20Flash {
   provider vertex-ai
   options {
     model gemini-2.0-flash-001
-    project_id YOUR_GCP_PROJECT
     location us-central1
+    credentials env.GOOGLE_APPLICATION_CREDENTIALS
     generation_config {
       temperature 0.0
       seed 42
@@ -62,6 +61,16 @@ client<llm> CustomHaiku {
   }
 }
 
+client<llm> AppFallback {
+  provider fallback
+  retry_policy Exponential
+  options {
+    // This will try the clients in order until one succeeds
+    strategy [Gemini20Flash]//, Llama32_11b_vision]
+  }
+}
+
+
 // https://docs.boundaryml.com/docs/snippets/clients/round-robin
 client<llm> CustomFast {
   provider round-robin
@@ -71,14 +80,7 @@ client<llm> CustomFast {
   }
 }
 
-// https://docs.boundaryml.com/docs/snippets/clients/fallback
-client<llm> OpenaiFallback {
-  provider fallback
-  options {
-    // This will try the clients in order until one succeeds
-    strategy [CustomGPT4oMini, CustomHaiku]
-  }
-}
+
 
 // https://docs.boundaryml.com/docs/snippets/clients/retry
 retry_policy Constant {

@@ -175,4 +175,4 @@ cython_debug/
 
 
 node_modules
-baml_client
+processed

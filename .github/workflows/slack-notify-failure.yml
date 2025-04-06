@@ -1,0 +1,32 @@
+name: Slack Notification
+on:
+  workflow_call:
+    secrets:
+      SLACK_BOT_TOKEN:
+        required: true
+    inputs:
+      channel_id:
+        required: false
+        type: string
+        default: C08E2A048VC
+      message:
+        required: false
+        type: string
+        default: 'Workflow failed! :failed-success:'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: ${{ inputs.channel_id }}
+          slack-message: |
+            ${{ inputs.message }}
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref }}
+            Workflow: ${{ github.workflow }}
+            Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

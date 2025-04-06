@@ -1,0 +1,33 @@
+name: deploy modal
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/modals/**'
+      - '.github/workflows/modal-cd.yml'
+
+jobs:
+  deploy:
+    name: Deploy modal
+    runs-on: ubuntu-latest
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-repo
+            
+      - name: Deploy modals
+        run: make deploy-modal-all
+        
+  notify-failure:
+    needs: deploy
+    if: failure()
+    uses: ./.github/workflows/slack-notify-failure.yml
+    secrets:
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
