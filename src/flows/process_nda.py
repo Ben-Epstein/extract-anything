@@ -22,9 +22,10 @@ from cloudpathlib import GSPath
 
 async def configure_gcp():
     gcp_credentials_block: GcpCredentials = await GcpCredentials.load("northeastern-gcs-bucket") # type: ignore
-    with open("/tmp/google-serviceacount.json", "w") as f:
+    sa_file = "/tmp/google-serviceaccount.json"
+    with open(sa_file, "w") as f:
         json.dump(gcp_credentials_block.service_account_info.get_secret_value(), f) # type: ignore
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/google-serviceaccount.json"
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = sa_file
 
 
 BUCKET = "gs://northeastern-pdf-ndas"
@@ -117,6 +118,7 @@ async def main(pdf_dir: str | GSPath | None=None):
     if not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
         await configure_gcp()
     pdf_dir = pdf_dir or GSPath(BUCKET) / DELTA_IN
+    delta_out = GSPath(BUCKET) / DELTA_OUT
     pdf_paths = [p for p in GSPath(pdf_dir).iterdir() if p.name.endswith(".pdf")]
     tasks = [process_pdf(pdf_path) for pdf_path in pdf_paths]
     processed_pdfs = await asyncio.gather(*tasks)
@@ -129,7 +131,7 @@ async def main(pdf_dir: str | GSPath | None=None):
     dfs = [ndas_df, parties_df, risks_df, milestones_df]
     tables = ["ndas", "parties", "risks", "milestones"]
     for df, table in zip(dfs, tables):
-        write_delta(fill_null(df), DELTA_OUT / table, part_id=True if table != "ndas" else False)
+        write_delta(fill_null(df), delta_out / table, part_id=True if table != "ndas" else False)
 
 
 if __name__ == "__main__":
