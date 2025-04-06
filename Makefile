@@ -47,7 +47,7 @@ modal-deploy-all:
 prefect-auth:
 	uv run prefect cloud login
 
-prefect-deploy: setup
+prefect-deploy:
 	uv run prefect deploy --all --prefect-file ./src/flows/prefect.yaml
 
 show-prefect-profile:
