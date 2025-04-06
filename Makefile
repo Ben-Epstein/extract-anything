@@ -31,18 +31,21 @@ ui:
 server:
 	uv run python src/shared/server.py
 
+# Modal
 modal-auth:
 	uv run modal setup
 	uv run modal token new
 
-prefect-auth:
-	uv run prefect cloud login
-
 modal-deploy-llama:
 	uv run modal deploy -m modals.llama_modal.llama_3_2_11b --tag=`git rev-parse --short HEAD`
-
+  
 modal-deploy-all:
 	make modal-deploy-llama
+
+
+# Prefect
+prefect-auth:
+	uv run prefect cloud login
 
 prefect-deploy: setup
 	uv run prefect deploy --all --prefect-file ./src/flows/prefect.yaml
