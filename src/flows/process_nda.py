@@ -21,16 +21,18 @@ from cloudpathlib import GSPath
 
 
 async def configure_gcp():
-    gcp_credentials_block: GcpCredentials = await GcpCredentials.load("northeastern-gcs-bucket") # type: ignore
+    gcp_credentials_block: GcpCredentials = await GcpCredentials.load(
+        "northeastern-gcs-bucket"
+    )  # type: ignore
     sa_file = "/tmp/google-serviceaccount.json"
     with open(sa_file, "w") as f:
-        json.dump(gcp_credentials_block.service_account_info.get_secret_value(), f) # type: ignore
+        json.dump(gcp_credentials_block.service_account_info.get_secret_value(), f)  # type: ignore
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = sa_file
 
 
 BUCKET = "gs://northeastern-pdf-ndas"
 # ROOT = pathlib.Path(__file__).parent.parent.parent
-DELTA_OUT =  "db"
+DELTA_OUT = "db"
 DELTA_IN = "unprocessed"
 PROCESSED_PDFS = "processed"
 
@@ -111,7 +113,7 @@ def write_delta(df: pl.DataFrame, table: GSPath | str, part_id: bool) -> None:
     # on_cancellation=[notify_slack],  # type: ignore
     flow_run_name="process_ndas",
 )
-async def main(pdf_dir: str | GSPath | None=None):
+async def main(pdf_dir: str | GSPath | None = None):
     """Process all NDAs in a directory."""
     # print(f"Got new file: {file_path}")
     # pdf_paths = [file_path]
@@ -131,7 +133,9 @@ async def main(pdf_dir: str | GSPath | None=None):
     dfs = [ndas_df, parties_df, risks_df, milestones_df]
     tables = ["ndas", "parties", "risks", "milestones"]
     for df, table in zip(dfs, tables):
-        write_delta(fill_null(df), delta_out / table, part_id=True if table != "ndas" else False)
+        write_delta(
+            fill_null(df), delta_out / table, part_id=True if table != "ndas" else False
+        )
 
 
 if __name__ == "__main__":

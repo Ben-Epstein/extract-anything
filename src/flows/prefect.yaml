@@ -3,6 +3,16 @@
 # control along with your flow code.
 
 # Generic metadata about this project
+# triggers:  # TODO: how do?
+# - type: event
+#   enabled: true
+#   match:
+#     prefect.resource.id: gcs.bucket.northeastern-pdf-ndas
+#   expect:
+#   - gcs.object.created
+#   parameters:
+#     file_path: '{{ event.data.name }}'
+#   name: process-ndas__automation_1
 name: flows
 prefect-version: 3.1.15
 
@@ -19,7 +29,10 @@ pull:
     script: pip install uv==0.6.12
 - prefect.deployments.steps.run_shell_script:
     directory: '{{ clone-step.directory }}'
-    script: uv sync --no-editable --no-dev
+    script: |
+      uv sync --no-editable --no-dev
+      apt-get update
+      apt-get install -y poppler-utils
 
 deployments:
 - name: process-ndas
@@ -43,16 +56,3 @@ deployments:
     timezone: America/New_York
     day_or: true
     active: false
-
-
-    
-# triggers:  # TODO: how do?
-# - type: event
-#   enabled: true
-#   match:
-#     prefect.resource.id: gcs.bucket.northeastern-pdf-ndas
-#   expect:
-#   - gcs.object.created
-#   parameters:
-#     file_path: '{{ event.data.name }}'
-#   name: process-ndas__automation_1

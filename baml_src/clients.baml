@@ -65,7 +65,7 @@ client<llm> AppFallback {
   retry_policy Exponential
   options {
     // This will try the clients in order until one succeeds
-    strategy [Gemini20Flash, Llama32_11b_vision]
+    strategy [Gemini20Flash]//, Llama32_11b_vision]
   }
 }
 
