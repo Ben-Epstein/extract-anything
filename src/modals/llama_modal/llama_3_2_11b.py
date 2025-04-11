@@ -73,6 +73,7 @@ def serve():
         "40000",
         "--api-key",
         API_KEY,
+        # limit-mm-per-prompt to allow more than 1 image per prompt
     ]
 
     subprocess.Popen(" ".join(cmd), shell=True)
