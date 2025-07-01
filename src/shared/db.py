@@ -8,27 +8,28 @@ from shared.gcs import get_hmac_keys
 SQLS = Path(__file__).parent / "sql"
 
 
-def configure_duckdb_gcs_delta():
-    secrets = duckdb.query("FROM duckdb_secrets() where type='gcs'")
-    views = duckdb.query("FROM duckdb_views where view_name in ('ndas', 'parties', 'risks', 'milestones')")
+def configure_duckdb_gcs_delta(db_path: str = "db.db"):
+    con = duckdb.connect(db_path, read_only=False)
+    con.execute("USE main;")
+    secrets = con.query("FROM duckdb_secrets() where type='gcs'")
+    views = con.query("FROM duckdb_views where view_name in ('ndas', 'parties', 'risks', 'milestones')")
     if len(secrets) == 1 and len(views) == 4:
         return
     key, secret = get_hmac_keys()
-    duckdb.execute(f"""
-    CREATE OR REPLACE SECRET (
+    con.execute(f"""
+    CREATE OR REPLACE PERSISTENT SECRET (
         TYPE gcs,
         KEY_ID '{key}',
         SECRET '{secret}'
     );
     """)
-    duckdb.execute("CREATE OR REPLACE VIEW ndas AS SELECT * FROM delta_scan('gs://northeastern-pdf-ndas/db/ndas');")
-    duckdb.execute(
-        "CREATE OR REPLACE VIEW parties AS SELECT * FROM delta_scan('gs://northeastern-pdf-ndas/db/parties');"
-    )
-    duckdb.execute("CREATE OR REPLACE VIEW risks AS SELECT * FROM delta_scan('gs://northeastern-pdf-ndas/db/risks');")
-    duckdb.execute(
+    con.execute("CREATE OR REPLACE VIEW ndas AS SELECT * FROM delta_scan('gs://northeastern-pdf-ndas/db/ndas');")
+    con.execute("CREATE OR REPLACE VIEW parties AS SELECT * FROM delta_scan('gs://northeastern-pdf-ndas/db/parties');")
+    con.execute("CREATE OR REPLACE VIEW risks AS SELECT * FROM delta_scan('gs://northeastern-pdf-ndas/db/risks');")
+    con.execute(
         "CREATE OR REPLACE VIEW milestones AS SELECT * FROM delta_scan('gs://northeastern-pdf-ndas/db/milestones');"
     )
+    con.close()
 
 
 def get_risk_analysis() -> pl.DataFrame:

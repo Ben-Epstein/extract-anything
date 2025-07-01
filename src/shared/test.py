@@ -2,7 +2,9 @@
 # from baml_client.async_client import b
 # from baml_client.types import Person
 # from tqdm.asyncio import tqdm
+from shared.baml_client.types import NDA
 
+NDA.agreement_type
 
 resume_text = """
 Vaibhav Gupta
