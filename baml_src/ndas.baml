@@ -5,7 +5,7 @@ class NDA {
 
   title string
   effective_date string @description("Formatted YYYY-MM-DD") // Can't use ValidDate because fields with checks cannot be parameters to functions, and NDA is a param
-  agreement_type string
+  agreement_type AgreementType
   parties Party[]
   confidential_information ConfidentialInformation
   exclusions string[] @description("Information explicitly excluded from confidentiality obligations")

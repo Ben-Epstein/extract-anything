@@ -47,7 +47,7 @@ def flatten_nda(nda_data: types.NDA, deadlines: types.DeadlineReport, filename: 
         "nda_id": os.path.splitext(filename)[0],
         "title": nda_data.title,
         "effective_date": nda_data.effective_date,
-        "agreement_type": nda_data.agreement_type,
+        "agreement_type": nda_data.agreement_type.name,
         "term_duration_length": nda_data.term_duration.length,
         "term_duration_unit": nda_data.term_duration.unit.name,
         "confidentiality_period_length": nda_data.confidentiality_period.length,
