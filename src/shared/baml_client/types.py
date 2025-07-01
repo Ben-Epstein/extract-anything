@@ -106,7 +106,7 @@ class Milestone(BaseModel):
 class NDA(BaseModel):
     title: str
     effective_date: str
-    agreement_type: "AgreementType"
+    agreement_type: str
     parties: List["Party"]
     confidential_information: "ConfidentialInformation"
     exclusions: List[str]

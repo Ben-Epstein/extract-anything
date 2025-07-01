@@ -22,7 +22,7 @@ pull:
 - prefect.deployments.steps.git_clone:
     id: clone-step
     repository: https://github.com/ben-epstein/extract-anything
-    branch: northeastern-lecture
+    branch: main
     credentials: '{{ prefect.blocks.github-credentials.modal-github-pull }}'
 - prefect.deployments.steps.run_shell_script:
     directory: '{{ clone-step.directory }}'

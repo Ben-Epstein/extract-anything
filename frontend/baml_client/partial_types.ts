@@ -84,7 +84,7 @@ export namespace partial_types {
     export interface NDA {
         title?: (string | null)
         effective_date?: (string | null)
-        agreement_type?: (AgreementType | null)
+        agreement_type?: (string | null)
         parties?: (partial_types.Party | null)[]
         confidential_information?: (partial_types.ConfidentialInformation | null)
         exclusions?: (string | null)[]

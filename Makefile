@@ -6,7 +6,7 @@ baml-compile:
 
 
 uv:
-	pip install --upgrade 'uv>=0.6,<0.7'
+	curl -LsSf https://astral.sh/uv/0.6.12/install.sh | sh
 	uv venv
 
 configure-uv:
@@ -39,9 +39,13 @@ modal-auth:
 
 modal-deploy-llama:
 	uv run modal deploy -m modals.llama_modal.llama_3_2_11b --tag=`git rev-parse --short HEAD`
-  
+
+modal-deploy-gemma:
+	uv run modal deploy -m modals.gemma.gemma_3_4b --tag=`git rev-parse --short HEAD`
+
 modal-deploy-all: configure-uv
 	make modal-deploy-llama
+	make modal-deploy-gemma
 
 
 # Prefect

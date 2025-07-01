@@ -4,8 +4,19 @@ client<llm> Llama32_11b_vision {
   provider openai-generic
   options {
     model "neuralmagic/Llama-3.2-11B-Vision-Instruct-FP8-dynamic"
-    api_key "super-secret-key"
-    base_url env.LLM_BASE_URL
+    api_key env.MODAL_LLM_KEY
+    base_url env.LLAMA_LLM_BASE_URL
+    temperature 0.0
+    seed 42
+  }
+}
+
+client<llm> Gemma3_4b {
+  provider openai-generic
+  options {
+    model "RedHatAI/gemma-3-4b-it-FP8-dynamic"
+    api_key env.MODAL_LLM_KEY
+    base_url env.GEMMA_LLM_BASE_URL
     temperature 0.0
     seed 42
   }
@@ -17,7 +28,8 @@ client<llm> Gemini20Flash {
   options {
     model gemini-2.0-flash-001
     location us-central1
-    credentials env.GOOGLE_APPLICATION_CREDENTIALS
+    project_id env.GOOGLE_CLOUD_PROJECT
+    credentials env.GEMINI_CREDENTIALS
     generation_config {
       temperature 0.0
       seed 42

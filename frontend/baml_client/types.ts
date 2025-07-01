@@ -128,7 +128,7 @@ export interface Milestone {
 export interface NDA {
   title: string
   effective_date: string
-  agreement_type: AgreementType
+  agreement_type: string
   parties: Party[]
   confidential_information: ConfidentialInformation
   exclusions: string[]

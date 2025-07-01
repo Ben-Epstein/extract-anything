@@ -4,6 +4,7 @@ class Response {
 }
 
 function ExecuteBAML(content: string | image | audio | image[]) -> Response {
+  //client Gemma3_4b
   client Gemini20Flash
   prompt #"
     {{ _.role('user') }}
