@@ -8,13 +8,13 @@ from shared.gcs import get_hmac_keys
 SQLS = Path(__file__).parent / "sql"
 
 
-def configure_duckdb_gcs_delta(db_path: str = "db.db"):
+def configure_duckdb_gcs_delta():
     con = duckdb.connect(db_path, read_only=False)
     con.execute("USE main;")
     secrets = con.query("FROM duckdb_secrets() where type='gcs'")
     views = con.query("FROM duckdb_views where view_name in ('ndas', 'parties', 'risks', 'milestones')")
     if len(secrets) == 1 and len(views) == 4:
-        return
+        return con
     key, secret = get_hmac_keys()
     con.execute(f"""
     CREATE OR REPLACE PERSISTENT SECRET (
@@ -29,7 +29,13 @@ def configure_duckdb_gcs_delta(db_path: str = "db.db"):
     con.execute(
         "CREATE OR REPLACE VIEW milestones AS SELECT * FROM delta_scan('gs://northeastern-pdf-ndas/db/milestones');"
     )
-    con.close()
+    return con
+
+
+def launch_duckdb_ui():
+    """Launch duckdb UI with delta connection."""
+    conn = confiure_duckdb_gcs_delta()
+    conn.execute("CALL start_ui()")
 
 
 def get_risk_analysis() -> pl.DataFrame:
@@ -45,10 +51,10 @@ def get_risk_analysis() -> pl.DataFrame:
     Returns:
         DataFrame containing agreement types, risk counts, and risk percentages
     """
-    configure_duckdb_gcs_delta()
+    conn = configure_duckdb_gcs_delta()
     with open(SQLS / "RISK_ANALYSIS.sql") as f:
         sql = f.read()
-    return duckdb.query(sql).pl()
+    return conn.query(sql).pl()
 
 
 def get_timeline_analysis() -> pl.DataFrame:
@@ -65,10 +71,10 @@ def get_timeline_analysis() -> pl.DataFrame:
     Returns:
         DataFrame containing milestone timelines grouped by governing jurisdiction
     """
-    configure_duckdb_gcs_delta()
+    conn = configure_duckdb_gcs_delta()
     with open(SQLS / "TIMELINE_ANALYSIS.sql") as f:
         sql = f.read()
-    return duckdb.query(sql).pl()
+    return conn.query(sql).pl()
 
 
 def get_party_risk_correlation() -> pl.DataFrame:
@@ -86,7 +92,7 @@ def get_party_risk_correlation() -> pl.DataFrame:
     Returns:
         DataFrame showing relationships between party configurations and risk levels
     """
-    configure_duckdb_gcs_delta()
+    conn = configure_duckdb_gcs_delta()
     with open(SQLS / "PARTY_RISK_CORRELATION.sql") as f:
         sql = f.read()
-    return duckdb.query(sql).pl()
+    return conn.query(sql).pl()
